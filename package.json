@@ -1,0 +1,26 @@
+{
+  "name": "neighbor-hub",
+  "version": "1.0.0",
+  "description": "Community Connection Platform - Fostering stronger local communities",
+  "main": "server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "install-deps": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "start": "cd backend && npm start"
+  },
+  "keywords": [
+    "community",
+    "neighborhood",
+    "marketplace",
+    "safety",
+    "mern"
+  ],
+  "author": "NeighborHub Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
