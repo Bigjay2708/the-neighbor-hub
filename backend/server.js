@@ -14,6 +14,7 @@ const userRoutes = require('./routes/users');
 const forumRoutes = require('./routes/forum');
 const marketplaceRoutes = require('./routes/marketplace');
 const safetyRoutes = require('./routes/safety');
+const messageRoutes = require('./routes/messages');
 
 const app = express();
 const server = http.createServer(app);
@@ -57,8 +58,21 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.log('MongoDB connection error:', err));
 
 // Socket.io connection handling
+const connectedUsers = new Map(); // Track connected users
+
 io.on('connection', (socket) => {
   console.log('New client connected');
+
+  // User authentication and tracking
+  socket.on('authenticate', (userId) => {
+    socket.userId = userId;
+    connectedUsers.set(userId, socket.id);
+    socket.join(`user_${userId}`);
+    
+    // Broadcast updated online status
+    socket.broadcast.emit('userOnline', userId);
+    console.log(`User ${userId} authenticated and joined`);
+  });
 
   // Join neighborhood room
   socket.on('joinNeighborhood', (neighborhoodId) => {
@@ -83,10 +97,31 @@ io.on('connection', (socket) => {
 
   // Handle private messages
   socket.on('privateMessage', (data) => {
-    socket.to(data.recipientId).emit('privateMessage', data);
+    const { recipientId, senderId, content, senderName } = data;
+    
+    // Send to specific user room
+    io.to(`user_${recipientId}`).emit('privateMessage', {
+      senderId,
+      senderName,
+      content,
+      createdAt: new Date().toISOString()
+    });
+    
+    console.log(`Private message from ${senderId} to ${recipientId}`);
+  });
+
+  // Get online users
+  socket.on('getOnlineUsers', () => {
+    const onlineUserIds = Array.from(connectedUsers.keys());
+    socket.emit('onlineUsers', onlineUserIds);
   });
 
   socket.on('disconnect', () => {
+    if (socket.userId) {
+      connectedUsers.delete(socket.userId);
+      socket.broadcast.emit('userOffline', socket.userId);
+      console.log(`User ${socket.userId} disconnected`);
+    }
     console.log('Client disconnected');
   });
 });
@@ -97,6 +132,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/safety', safetyRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -11,7 +11,8 @@ import {
   Bell,
   Menu,
   X,
-  LogOut
+  LogOut,
+  MessageCircle
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -24,6 +25,7 @@ const Layout = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Forum', href: '/forum', icon: MessageSquare },
+    { name: 'Messages', href: '/messages', icon: MessageCircle },
     { name: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
     { name: 'Safety', href: '/safety', icon: Shield },
     { name: 'Neighbors', href: '/neighbors', icon: Users },

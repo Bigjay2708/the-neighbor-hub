@@ -21,8 +21,12 @@ export const SocketProvider = ({ children }) => {
 
       newSocket.on('connect', () => {
         console.log('Connected to server');
+        // Authenticate user
+        newSocket.emit('authenticate', user.id);
         // Join neighborhood room
         newSocket.emit('joinNeighborhood', user.neighborhoodId);
+        // Get online users
+        newSocket.emit('getOnlineUsers');
       });
 
       newSocket.on('disconnect', () => {
@@ -65,7 +69,7 @@ export const SocketProvider = ({ children }) => {
 
       // Listen for private messages
       newSocket.on('privateMessage', (data) => {
-        toast(`Message from ${data.senderName}: ${data.message}`, {
+        toast(`Message from ${data.senderName}: ${data.content}`, {
           icon: '✉️',
           duration: 4000,
         });
@@ -74,6 +78,16 @@ export const SocketProvider = ({ children }) => {
       // Listen for online users
       newSocket.on('onlineUsers', (users) => {
         setOnlineUsers(users);
+      });
+
+      // Listen for user coming online
+      newSocket.on('userOnline', (userId) => {
+        setOnlineUsers(prev => [...prev.filter(id => id !== userId), userId]);
+      });
+
+      // Listen for user going offline
+      newSocket.on('userOffline', (userId) => {
+        setOnlineUsers(prev => prev.filter(id => id !== userId));
       });
 
       setSocket(newSocket);
@@ -85,8 +99,10 @@ export const SocketProvider = ({ children }) => {
       if (socket) {
         socket.close();
         setSocket(null);
+        setOnlineUsers([]);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const emitForumMessage = (data) => {

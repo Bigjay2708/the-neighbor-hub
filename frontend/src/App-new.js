@@ -15,7 +15,6 @@ import SafetyPage from './pages/SafetyPage';
 import SafetyReportPage from './pages/SafetyReportPage';
 import ProfilePage from './pages/ProfilePage';
 import NeighborsPage from './pages/NeighborsPage';
-import MessagesPage from './pages/MessagesPage';
 import LoadingSpinner from './components/UI/LoadingSpinner';
 
 function App() {
@@ -82,10 +81,6 @@ function App() {
         <Route 
           path="/neighbors" 
           element={user ? <Layout><NeighborsPage /></Layout> : <Navigate to="/login" replace />} 
-        />
-        <Route 
-          path="/messages" 
-          element={user ? <Layout><MessagesPage /></Layout> : <Navigate to="/login" replace />} 
         />
         
         {/* Catch all route */}
