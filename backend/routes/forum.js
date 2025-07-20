@@ -3,6 +3,10 @@ const { body, validationResult } = require('express-validator');
 const ForumPost = require('../models/ForumPost');
 const Comment = require('../models/Comment');
 const { auth, verifiedOnly, moderatorOrAdmin } = require('../middleware/auth');
+const { sanitizeUserInput } = require('../utils/security');
+const { uploadMultiple, handleUploadError, processUploadedFiles } = require('../utils/upload');
+const { postCreationLimiter } = require('../utils/rateLimiting');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -85,7 +89,7 @@ router.get('/posts', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get forum posts error:', error);
+    logger.error('Get forum posts error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -138,7 +142,7 @@ router.get('/posts/:id', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get forum post error:', error);
+    logger.error('Get forum post error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -149,6 +153,8 @@ router.get('/posts/:id', auth, async (req, res) => {
 router.post('/posts', [
   auth,
   verifiedOnly,
+  postCreationLimiter,
+  uploadMultiple,
   body('title').trim().notEmpty().withMessage('Title is required'),
   body('content').trim().notEmpty().withMessage('Content is required'),
   body('category').isIn(['general', 'events', 'pets', 'recommendations', 'lost-found', 'announcements', 'questions', 'services']).withMessage('Valid category is required')
@@ -159,14 +165,22 @@ router.post('/posts', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, content, category, tags, images } = req.body;
+    // Sanitize user input
+    const sanitizedData = sanitizeUserInput(req.body, {
+      title: { type: 'text' },
+      content: { type: 'html' },
+      category: { type: 'text' }
+    });
+
+    // Process uploaded images
+    const uploadedImages = processUploadedFiles(req.files);
 
     const post = new ForumPost({
-      title,
-      content,
-      category,
-      tags: tags || [],
-      images: images || [],
+      title: sanitizedData.title,
+      content: sanitizedData.content,
+      category: sanitizedData.category,
+      tags: req.body.tags || [],
+      images: uploadedImages,
       authorId: req.user.id,
       neighborhoodId: req.user.neighborhoodId
     });
@@ -182,7 +196,7 @@ router.post('/posts', [
     });
 
   } catch (error) {
-    console.error('Create forum post error:', error);
+    logger.error('Create forum post error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -232,7 +246,7 @@ router.put('/posts/:id', [
     });
 
   } catch (error) {
-    console.error('Update forum post error:', error);
+    logger.error('Update forum post error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -268,7 +282,7 @@ router.post('/posts/:id/like', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Like post error:', error);
+    logger.error('Like post error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -286,7 +300,10 @@ router.post('/posts/:id/comments', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { content, parentCommentId } = req.body;
+    // Sanitize comment content
+    const sanitizedData = sanitizeUserInput(req.body, {
+      content: { type: 'html' }
+    });
 
     const post = await ForumPost.findById(req.params.id);
     if (!post) {
@@ -294,10 +311,10 @@ router.post('/posts/:id/comments', [
     }
 
     const comment = new Comment({
-      content,
+      content: sanitizedData.content,
       authorId: req.user.id,
       postId: req.params.id,
-      parentCommentId: parentCommentId || null
+      parentCommentId: req.body.parentCommentId || null
     });
 
     await comment.save();
@@ -312,7 +329,7 @@ router.post('/posts/:id/comments', [
     });
 
   } catch (error) {
-    console.error('Add comment error:', error);
+    logger.error('Add comment error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -342,9 +359,12 @@ router.delete('/posts/:id', auth, async (req, res) => {
     res.json({ message: 'Post deleted successfully' });
 
   } catch (error) {
-    console.error('Delete post error:', error);
+    logger.error('Delete post error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+// Error handling middleware for file uploads
+router.use(handleUploadError);
 
 module.exports = router;

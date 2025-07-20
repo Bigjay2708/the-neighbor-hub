@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { auth, adminOnly } = require('../middleware/auth');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get('/profile', auth, async (req, res) => {
 
     res.json({ user });
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -57,7 +58,7 @@ router.put('/profile', [
     });
 
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -102,7 +103,7 @@ router.get('/neighbors', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get neighbors error:', error);
+    logger.error('Get neighbors error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -128,7 +129,7 @@ router.get('/neighbors/:id', auth, async (req, res) => {
     res.json({ neighbor });
 
   } catch (error) {
-    console.error('Get neighbor error:', error);
+    logger.error('Get neighbor error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -156,7 +157,7 @@ router.post('/upload-avatar', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Upload avatar error:', error);
+    logger.error('Upload avatar error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -191,7 +192,7 @@ router.post('/add-skill', [
     });
 
   } catch (error) {
-    console.error('Add skill error:', error);
+    logger.error('Add skill error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -214,7 +215,7 @@ router.delete('/remove-skill/:skill', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Remove skill error:', error);
+    logger.error('Remove skill error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -238,7 +239,7 @@ router.put('/preferences', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Update preferences error:', error);
+    logger.error('Update preferences error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -270,7 +271,7 @@ router.get('/activity-stats', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get activity stats error:', error);
+    logger.error('Get activity stats error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -325,7 +326,7 @@ router.get('/admin/all', [auth, adminOnly], async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get all users error:', error);
+    logger.error('Get all users error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -362,7 +363,7 @@ router.put('/admin/:id/role', [
     });
 
   } catch (error) {
-    console.error('Update user role error:', error);
+    logger.error('Update user role error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

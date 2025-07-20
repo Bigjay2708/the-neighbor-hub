@@ -128,18 +128,3 @@
 .animate-spin {
   animation: spin 1s linear infinite;
 }
-
-/* Leaflet map fixes */
-.leaflet-container {
-  height: 100%;
-  width: 100%;
-  z-index: 1;
-}
-
-.leaflet-popup-content-wrapper {
-  @apply rounded-lg shadow-lg;
-}
-
-.leaflet-popup-content {
-  @apply text-sm;
-}

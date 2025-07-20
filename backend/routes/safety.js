@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const SafetyReport = require('../models/SafetyReport');
 const { auth, verifiedOnly, moderatorOrAdmin } = require('../middleware/auth');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -90,7 +91,7 @@ router.get('/reports', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get safety reports error:', error);
+    logger.error('Get safety reports error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -117,7 +118,7 @@ router.get('/reports/:id', auth, async (req, res) => {
     res.json({ report });
 
   } catch (error) {
-    console.error('Get safety report error:', error);
+    logger.error('Get safety report error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -186,7 +187,7 @@ router.post('/reports', [
     });
 
   } catch (error) {
-    console.error('Create safety report error:', error);
+    logger.error('Create safety report error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -237,7 +238,7 @@ router.put('/reports/:id', [
     });
 
   } catch (error) {
-    console.error('Update safety report error:', error);
+    logger.error('Update safety report error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -272,7 +273,7 @@ router.post('/reports/:id/acknowledge', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Acknowledge report error:', error);
+    logger.error('Acknowledge report error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -317,7 +318,7 @@ router.post('/reports/:id/comments', [
     });
 
   } catch (error) {
-    console.error('Add comment error:', error);
+    logger.error('Add comment error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -348,7 +349,7 @@ router.post('/reports/:id/verify', [auth, moderatorOrAdmin], async (req, res) =>
     });
 
   } catch (error) {
-    console.error('Verify report error:', error);
+    logger.error('Verify report error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -414,7 +415,7 @@ router.get('/stats', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get safety stats error:', error);
+    logger.error('Get safety stats error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -440,7 +441,7 @@ router.delete('/reports/:id', auth, async (req, res) => {
     res.json({ message: 'Report deleted successfully' });
 
   } catch (error) {
-    console.error('Delete report error:', error);
+    logger.error('Delete report error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

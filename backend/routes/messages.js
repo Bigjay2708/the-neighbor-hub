@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
+const { messageLimiter } = require('../utils/rateLimiting');
+const { sanitizeUserInput } = require('../utils/security');
+const logger = require('../utils/logger');
 
 // Get all conversations for a user
 router.get('/conversations', auth, async (req, res) => {
@@ -73,7 +76,7 @@ router.get('/conversations', auth, async (req, res) => {
 
     res.json({ conversations });
   } catch (error) {
-    console.error('Error fetching conversations:', error);
+    logger.error('Error fetching conversations:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -123,18 +126,23 @@ router.get('/conversations/:conversationId', auth, async (req, res) => {
 
     res.json({ messages: formattedMessages });
   } catch (error) {
-    console.error('Error fetching messages:', error);
+    logger.error('Error fetching messages:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // Send a new message
-router.post('/send', auth, async (req, res) => {
+router.post('/send', [auth, messageLimiter], async (req, res) => {
   try {
-    const { recipientId, content } = req.body;
+    // Sanitize input
+    const sanitizedData = sanitizeUserInput(req.body, {
+      content: { type: 'text' }
+    });
+
+    const { recipientId } = req.body;
     const senderId = req.user.id;
 
-    if (!recipientId || !content) {
+    if (!recipientId || !sanitizedData.content) {
       return res.status(400).json({ message: 'Recipient and content are required' });
     }
 
@@ -148,7 +156,7 @@ router.post('/send', auth, async (req, res) => {
     const message = new Message({
       senderId,
       recipientId,
-      content: content.trim()
+      content: sanitizedData.content.trim()
     });
 
     await message.save();
@@ -171,7 +179,7 @@ router.post('/send', auth, async (req, res) => {
       success: true 
     });
   } catch (error) {
-    console.error('Error sending message:', error);
+    logger.error('Error sending message:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -196,7 +204,7 @@ router.patch('/conversations/:conversationId/read', auth, async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Error marking conversation as read:', error);
+    logger.error('Error marking conversation as read:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -213,7 +221,7 @@ router.get('/unread-count', auth, async (req, res) => {
 
     res.json({ unreadCount });
   } catch (error) {
-    console.error('Error getting unread count:', error);
+    logger.error('Error getting unread count:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

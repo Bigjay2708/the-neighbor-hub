@@ -17,6 +17,7 @@ import ProfilePage from './pages/ProfilePage';
 import NeighborsPage from './pages/NeighborsPage';
 import MessagesPage from './pages/MessagesPage';
 import LoadingSpinner from './components/UI/LoadingSpinner';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const { user, loading } = useAuth();
@@ -30,23 +31,24 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Routes>
-        {/* Public routes */}
-        <Route 
-          path="/" 
-          element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} 
-        />
-        <Route 
-          path="/login" 
-          element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
-        />
-        <Route 
-          path="/register" 
-          element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} 
-        />
-        
-        {/* Protected routes */}
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          {/* Public routes */}
+          <Route 
+            path="/" 
+            element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} 
+          />
+          <Route 
+            path="/login" 
+            element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+          />
+          <Route 
+            path="/register" 
+            element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} 
+          />
+          
+          {/* Protected routes */}
         <Route 
           path="/dashboard" 
           element={user ? <Layout><DashboardPage /></Layout> : <Navigate to="/login" replace />} 
@@ -115,7 +117,8 @@ function App() {
           },
         }}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 

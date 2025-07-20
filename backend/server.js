@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const http = require('http');
 const socketIo = require('socket.io');
+const logger = require('./utils/logger');
 require('dotenv').config();
 
 // Import routes
@@ -15,6 +16,7 @@ const forumRoutes = require('./routes/forum');
 const marketplaceRoutes = require('./routes/marketplace');
 const safetyRoutes = require('./routes/safety');
 const messageRoutes = require('./routes/messages');
+const uploadRoutes = require('./routes/upload');
 
 const app = express();
 const server = http.createServer(app);
@@ -54,14 +56,14 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB Connected'))
-.catch(err => console.log('MongoDB connection error:', err));
+.then(() => logger.info('MongoDB Connected'))
+.catch(err => logger.error('MongoDB connection error:', err));
 
 // Socket.io connection handling
 const connectedUsers = new Map(); // Track connected users
 
 io.on('connection', (socket) => {
-  console.log('New client connected');
+  logger.debug('New client connected');
 
   // User authentication and tracking
   socket.on('authenticate', (userId) => {
@@ -71,13 +73,13 @@ io.on('connection', (socket) => {
     
     // Broadcast updated online status
     socket.broadcast.emit('userOnline', userId);
-    console.log(`User ${userId} authenticated and joined`);
+    logger.info(`User ${userId} authenticated and joined`);
   });
 
   // Join neighborhood room
   socket.on('joinNeighborhood', (neighborhoodId) => {
     socket.join(neighborhoodId);
-    console.log(`User joined neighborhood: ${neighborhoodId}`);
+    logger.info(`User joined neighborhood: ${neighborhoodId}`);
   });
 
   // Handle forum messages
@@ -107,7 +109,7 @@ io.on('connection', (socket) => {
       createdAt: new Date().toISOString()
     });
     
-    console.log(`Private message from ${senderId} to ${recipientId}`);
+    logger.debug(`Private message from ${senderId} to ${recipientId}`);
   });
 
   // Get online users
@@ -120,9 +122,9 @@ io.on('connection', (socket) => {
     if (socket.userId) {
       connectedUsers.delete(socket.userId);
       socket.broadcast.emit('userOffline', socket.userId);
-      console.log(`User ${socket.userId} disconnected`);
+      logger.info(`User ${socket.userId} disconnected`);
     }
-    console.log('Client disconnected');
+    logger.debug('Client disconnected');
   });
 });
 
@@ -133,6 +135,7 @@ app.use('/api/forum', forumRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/safety', safetyRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -141,7 +144,7 @@ app.get('/api/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error(err.stack);
   res.status(500).json({ 
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : {}
@@ -156,6 +159,6 @@ app.use('*', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
+  logger.info(`Server running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV}`);
 });

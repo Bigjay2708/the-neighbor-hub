@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const logger = require('../utils/logger');
 
 const auth = async (req, res, next) => {
   try {
@@ -19,7 +20,11 @@ const auth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    logger.error('Auth middleware error:', {
+      error: error.message,
+      stack: error.stack,
+      token: token ? 'Present' : 'Missing'
+    });
     res.status(401).json({ message: 'Token is not valid' });
   }
 };

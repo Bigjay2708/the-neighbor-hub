@@ -1,10 +1,27 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const jwt = require('js  } catch (error) {
+    logger.error('Registration error:', {
+      } catch (error) {
+    logger.error('Login error:', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body.email
+    });
+    res.status(500).json({ error: 'Server error during login' });
+  }ror: error.message,
+      stack: error.stack,
+      email: req.body.email
+    });
+    res.status(500).json({ error: 'Server error during registration' });
+  }btoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Neighborhood = require('../models/Neighborhood');
 const { auth } = require('../middleware/auth');
+const { authLimiter } = require('../utils/rateLimiting');
+const { sanitizeUserInput } = require('../utils/security');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -19,6 +36,7 @@ const generateToken = (userId) => {
 // @desc    Register user
 // @access  Public
 router.post('/register', [
+  authLimiter,
   body('firstName').trim().notEmpty().withMessage('First name is required'),
   body('lastName').trim().notEmpty().withMessage('Last name is required'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
@@ -32,29 +50,37 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { firstName, lastName, email, password, zipCode, address } = req.body;
+    // Sanitize user input
+    const sanitizedData = sanitizeUserInput(req.body, {
+      firstName: { type: 'text' },
+      lastName: { type: 'text' },
+      email: { type: 'text' },
+      zipCode: { type: 'text' }
+    });
+
+    const { password, address } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: sanitizedData.email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
     // Find neighborhood by zip code
-    const neighborhood = await Neighborhood.findOne({ zipCodes: zipCode });
+    const neighborhood = await Neighborhood.findOne({ zipCodes: sanitizedData.zipCode });
     if (!neighborhood) {
       return res.status(400).json({ message: 'No neighborhood found for this zip code' });
     }
 
     // Create new user
     const user = new User({
-      firstName,
-      lastName,
-      email,
+      firstName: sanitizedData.firstName,
+      lastName: sanitizedData.lastName,
+      email: sanitizedData.email,
       password,
       address: {
         ...address,
-        zipCode
+        zipCode: sanitizedData.zipCode
       },
       neighborhoodId: neighborhood._id
     });
@@ -84,7 +110,11 @@ router.post('/register', [
     });
 
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration error:', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body.email
+    });
     res.status(500).json({ message: 'Server error during registration' });
   }
 });
@@ -93,6 +123,7 @@ router.post('/register', [
 // @desc    Login user
 // @access  Public
 router.post('/login', [
+  authLimiter,
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
@@ -103,10 +134,15 @@ router.post('/login', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password } = req.body;
+    // Sanitize input
+    const sanitizedData = sanitizeUserInput(req.body, {
+      email: { type: 'text' }
+    });
+
+    const { password } = req.body;
 
     // Find user by email
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: sanitizedData.email }).select('+password');
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -139,7 +175,11 @@ router.post('/login', [
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', {
+      error: error.message,
+      stack: error.stack,
+      email: req.body.email
+    });
     res.status(500).json({ message: 'Server error during login' });
   }
 });
@@ -155,7 +195,11 @@ router.get('/me', auth, async (req, res) => {
 
     res.json({ user });
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('Get user error:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user.id
+    });
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -174,7 +218,11 @@ router.post('/verify-email', auth, async (req, res) => {
 
     res.json({ message: 'Email verified successfully' });
   } catch (error) {
-    console.error('Email verification error:', error);
+    logger.error('Email verification error:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user.id
+    });
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -207,7 +255,11 @@ router.post('/change-password', [
 
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
-    console.error('Change password error:', error);
+    logger.error('Change password error:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user.id
+    });
     res.status(500).json({ message: 'Server error' });
   }
 });

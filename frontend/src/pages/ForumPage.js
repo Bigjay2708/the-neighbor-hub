@@ -76,23 +76,33 @@ const ForumPage = () => {
     try {
       setIsSubmitting(true);
       
-      // For now, we'll handle image uploads separately
-      // In a real implementation, you'd upload images to Cloudinary first
-      const postData = {
-        title: formData.title,
-        content: formData.content,
-        category: formData.category,
-        tags: formData.tags,
-        images: [] // TODO: Implement image upload
-      };
+      // Create FormData for file upload
+      const postFormData = new FormData();
+      postFormData.append('title', formData.title);
+      postFormData.append('content', formData.content);
+      postFormData.append('category', formData.category);
+      
+      // Add tags
+      if (formData.tags && formData.tags.length > 0) {
+        formData.tags.forEach(tag => {
+          postFormData.append('tags', tag);
+        });
+      }
+      
+      // Add images
+      if (formData.images && formData.images.length > 0) {
+        formData.images.forEach(imageData => {
+          postFormData.append('images', imageData.file);
+        });
+      }
 
       const response = await fetch('/api/forum/posts', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
+          // Don't set Content-Type header - let browser set it with boundary for FormData
         },
-        body: JSON.stringify(postData)
+        body: postFormData
       });
 
       if (response.ok) {

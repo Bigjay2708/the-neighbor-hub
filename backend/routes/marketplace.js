@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const MarketplaceListing = require('../models/MarketplaceListing');
 const { auth, verifiedOnly } = require('../middleware/auth');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -89,7 +90,7 @@ router.get('/listings', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get marketplace listings error:', error);
+    logger.error('Get marketplace listings error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -119,7 +120,7 @@ router.get('/listings/:id', auth, async (req, res) => {
     res.json({ listing });
 
   } catch (error) {
-    console.error('Get marketplace listing error:', error);
+    logger.error('Get marketplace listing error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -180,7 +181,7 @@ router.post('/listings', [
     });
 
   } catch (error) {
-    console.error('Create marketplace listing error:', error);
+    logger.error('Create marketplace listing error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -232,7 +233,7 @@ router.put('/listings/:id', [
     });
 
   } catch (error) {
-    console.error('Update marketplace listing error:', error);
+    logger.error('Update marketplace listing error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -267,7 +268,7 @@ router.post('/listings/:id/favorite', auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Favorite listing error:', error);
+    logger.error('Favorite listing error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -302,7 +303,7 @@ router.post('/listings/:id/bump', auth, async (req, res) => {
     res.json({ message: 'Listing bumped successfully' });
 
   } catch (error) {
-    console.error('Bump listing error:', error);
+    logger.error('Bump listing error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -326,7 +327,7 @@ router.get('/my-listings', auth, async (req, res) => {
     res.json({ listings });
 
   } catch (error) {
-    console.error('Get my listings error:', error);
+    logger.error('Get my listings error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -346,7 +347,7 @@ router.get('/favorites', auth, async (req, res) => {
     res.json({ listings });
 
   } catch (error) {
-    console.error('Get favorite listings error:', error);
+    logger.error('Get favorite listings error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -372,7 +373,7 @@ router.delete('/listings/:id', auth, async (req, res) => {
     res.json({ message: 'Listing deleted successfully' });
 
   } catch (error) {
-    console.error('Delete listing error:', error);
+    logger.error('Delete listing error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
