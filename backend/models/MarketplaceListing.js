@@ -104,14 +104,12 @@ const marketplaceListingSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient querying
 marketplaceListingSchema.index({ neighborhoodId: 1, category: 1, status: 1, createdAt: -1 });
 marketplaceListingSchema.index({ sellerId: 1 });
 marketplaceListingSchema.index({ tags: 1 });
 marketplaceListingSchema.index({ price: 1 });
 marketplaceListingSchema.index({ 'location.coordinates': '2dsphere' });
 
-// Automatically expire listings
 marketplaceListingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('MarketplaceListing', marketplaceListingSchema);

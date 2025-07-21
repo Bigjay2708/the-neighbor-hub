@@ -10,11 +10,9 @@ const SafetyReport = require('./models/SafetyReport');
 
 const seedData = async () => {
   try {
-    // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
-    // Clear existing data
     await User.deleteMany({});
     await Neighborhood.deleteMany({});
     await ForumPost.deleteMany({});
@@ -23,7 +21,6 @@ const seedData = async () => {
 
     console.log('Cleared existing data');
 
-    // Create sample neighborhood
     const neighborhood = new Neighborhood({
       name: 'Willowbrook Community',
       description: 'A friendly residential neighborhood with tree-lined streets and community spirit.',
@@ -49,7 +46,6 @@ const seedData = async () => {
     await neighborhood.save();
     console.log('Created sample neighborhood');
 
-    // Create sample users
     const users = [
       {
         firstName: 'John',
@@ -128,7 +124,6 @@ const seedData = async () => {
     const createdUsers = await User.insertMany(users);
     console.log('Created sample users');
 
-    // Update neighborhood stats
     await Neighborhood.findByIdAndUpdate(neighborhood._id, {
       $set: {
         adminIds: [createdUsers[0]._id],
@@ -137,7 +132,6 @@ const seedData = async () => {
       }
     });
 
-    // Create sample forum posts
     const forumPosts = [
       {
         title: 'Welcome to Willowbrook Community!',
@@ -177,7 +171,6 @@ const seedData = async () => {
     await ForumPost.insertMany(forumPosts);
     console.log('Created sample forum posts');
 
-    // Create sample marketplace listings
     const marketplaceListings = [
       {
         title: 'Dining Room Table - Excellent Condition',
@@ -229,7 +222,6 @@ const seedData = async () => {
     await MarketplaceListing.insertMany(marketplaceListings);
     console.log('Created sample marketplace listings');
 
-    // Create sample safety reports
     const safetyReports = [
       {
         title: 'Streetlight Out on Oak Street',

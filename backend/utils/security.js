@@ -10,7 +10,6 @@ const sanitizeHtml = (content) => {
     return '';
   }
 
-  // Configure DOMPurify for safe HTML
   const cleanHtml = DOMPurify.sanitize(content, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'blockquote'],
     ALLOWED_ATTR: [],
@@ -32,7 +31,6 @@ const sanitizeText = (text) => {
     return '';
   }
 
-  // Remove any HTML tags and decode entities
   return DOMPurify.sanitize(text, { 
     ALLOWED_TAGS: [], 
     KEEP_CONTENT: true 
@@ -92,7 +90,6 @@ const validateFileUpload = (file) => {
     errors.push('File size too large. Maximum size is 5MB');
   }
 
-  // Check for potentially malicious file names
   const dangerousPatterns = [/\.php$/i, /\.exe$/i, /\.js$/i, /\.html$/i, /\.htm$/i];
   if (dangerousPatterns.some(pattern => pattern.test(file.originalname))) {
     errors.push('Invalid file name');

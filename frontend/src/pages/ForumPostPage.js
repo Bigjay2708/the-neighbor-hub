@@ -36,7 +36,6 @@ const ForumPostPage = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
 
-  // Fetch post and comments
   const fetchPost = useCallback(async () => {
     try {
       setLoading(true);
@@ -66,7 +65,6 @@ const ForumPostPage = () => {
     }
   }, [id, user.id, navigate]);
 
-  // Like/unlike post
   const handleLike = async () => {
     try {
       const response = await fetch(`/api/forum/posts/${id}/like`, {
@@ -88,7 +86,6 @@ const ForumPostPage = () => {
     }
   };
 
-  // Submit comment
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
@@ -113,10 +110,8 @@ const ForumPostPage = () => {
         setCommentText('');
         setReplyingTo(null);
         
-        // Refresh comments
         await fetchPost();
         
-        // Emit real-time update
         emitForumMessage({
           type: 'newComment',
           postId: id,
@@ -133,7 +128,6 @@ const ForumPostPage = () => {
     }
   };
 
-  // Delete post
   const handleDeletePost = async () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 

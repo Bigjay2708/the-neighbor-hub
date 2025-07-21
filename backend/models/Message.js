@@ -34,7 +34,6 @@ const messageSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create conversation ID from sender and recipient IDs (sorted for consistency)
 messageSchema.pre('save', function(next) {
   if (!this.conversationId) {
     const ids = [this.senderId.toString(), this.recipientId.toString()].sort();
@@ -43,7 +42,6 @@ messageSchema.pre('save', function(next) {
   next();
 });
 
-// Index for efficient conversation queries
 messageSchema.index({ conversationId: 1, createdAt: -1 });
 messageSchema.index({ senderId: 1, recipientId: 1 });
 

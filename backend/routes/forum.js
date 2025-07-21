@@ -10,9 +10,6 @@ const logger = require('../utils/logger');
 
 const router = express.Router();
 
-// @route   GET /api/forum/posts
-// @desc    Get forum posts for user's neighborhood
-// @access  Private
 router.get('/posts', auth, async (req, res) => {
   try {
     const { 
@@ -29,7 +26,6 @@ router.get('/posts', auth, async (req, res) => {
       isModerated: false 
     };
 
-    // Add filters
     if (category && category !== 'all') {
       query.category = category;
     }
@@ -45,7 +41,6 @@ router.get('/posts', auth, async (req, res) => {
       ];
     }
 
-    // Sort options
     let sortOptions = {};
     switch (sortBy) {
       case 'newest':
@@ -71,7 +66,6 @@ router.get('/posts', auth, async (req, res) => {
       .skip((page - 1) * limit)
       .lean();
 
-    // Get comment counts for each post
     const postsWithCommentCounts = await Promise.all(
       posts.map(async (post) => {
         const commentCount = await Comment.countDocuments({ postId: post._id });
@@ -94,9 +88,6 @@ router.get('/posts', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/forum/posts/:id
-// @desc    Get single forum post with comments
-// @access  Private
 router.get('/posts/:id', auth, async (req, res) => {
   try {
     const post = await ForumPost.findById(req.params.id)
@@ -106,20 +97,16 @@ router.get('/posts/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Check if user is in the same neighborhood
     if (post.neighborhoodId.toString() !== req.user.neighborhoodId.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Increment view count
     await ForumPost.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
 
-    // Get comments with nested replies
     const comments = await Comment.find({ postId: req.params.id })
       .populate('authorId', 'firstName lastName avatar role isVerified')
       .sort({ createdAt: 1 });
 
-    // Organize comments into threaded structure
     const commentMap = {};
     const topLevelComments = [];
 
@@ -147,9 +134,6 @@ router.get('/posts/:id', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/forum/posts
-// @desc    Create new forum post
-// @access  Private
 router.post('/posts', [
   auth,
   verifiedOnly,
@@ -165,14 +149,12 @@ router.post('/posts', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Sanitize user input
     const sanitizedData = sanitizeUserInput(req.body, {
       title: { type: 'text' },
       content: { type: 'html' },
       category: { type: 'text' }
     });
 
-    // Process uploaded images
     const uploadedImages = processUploadedFiles(req.files);
 
     const post = new ForumPost({
@@ -201,9 +183,6 @@ router.post('/posts', [
   }
 });
 
-// @route   PUT /api/forum/posts/:id
-// @desc    Update forum post
-// @access  Private
 router.put('/posts/:id', [
   auth,
   body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
@@ -221,7 +200,6 @@ router.put('/posts/:id', [
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Check if user is the author or moderator/admin
     if (post.authorId.toString() !== req.user.id && !['admin', 'moderator'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -251,9 +229,6 @@ router.put('/posts/:id', [
   }
 });
 
-// @route   POST /api/forum/posts/:id/like
-// @desc    Like/unlike a forum post
-// @access  Private
 router.post('/posts/:id/like', auth, async (req, res) => {
   try {
     const post = await ForumPost.findById(req.params.id);
@@ -265,10 +240,8 @@ router.post('/posts/:id/like', auth, async (req, res) => {
     const existingLike = post.likes.find(like => like.userId.toString() === req.user.id);
 
     if (existingLike) {
-      // Unlike the post
       post.likes = post.likes.filter(like => like.userId.toString() !== req.user.id);
     } else {
-      // Like the post
       post.likes.push({ userId: req.user.id });
     }
 
@@ -287,9 +260,6 @@ router.post('/posts/:id/like', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/forum/posts/:id/comments
-// @desc    Add comment to forum post
-// @access  Private
 router.post('/posts/:id/comments', [
   auth,
   body('content').trim().notEmpty().withMessage('Comment content is required')
@@ -300,7 +270,6 @@ router.post('/posts/:id/comments', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Sanitize comment content
     const sanitizedData = sanitizeUserInput(req.body, {
       content: { type: 'html' }
     });
@@ -334,9 +303,6 @@ router.post('/posts/:id/comments', [
   }
 });
 
-// @route   DELETE /api/forum/posts/:id
-// @desc    Delete forum post
-// @access  Private
 router.delete('/posts/:id', auth, async (req, res) => {
   try {
     const post = await ForumPost.findById(req.params.id);
@@ -345,15 +311,12 @@ router.delete('/posts/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Check if user is the author or moderator/admin
     if (post.authorId.toString() !== req.user.id && !['admin', 'moderator'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Delete all comments associated with the post
     await Comment.deleteMany({ postId: req.params.id });
 
-    // Delete the post
     await ForumPost.findByIdAndDelete(req.params.id);
 
     res.json({ message: 'Post deleted successfully' });
@@ -364,7 +327,6 @@ router.delete('/posts/:id', auth, async (req, res) => {
   }
 });
 
-// Error handling middleware for file uploads
 router.use(handleUploadError);
 
 module.exports = router;

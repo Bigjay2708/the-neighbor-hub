@@ -4,14 +4,12 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { validateFileUpload } = require('./security');
 const logger = require('./logger');
 
-// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Create Cloudinary storage
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -25,7 +23,6 @@ const storage = new CloudinaryStorage({
   },
 });
 
-// File filter function
 const fileFilter = (req, file, cb) => {
   const validation = validateFileUpload(file);
   
@@ -36,7 +33,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Configure multer
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,

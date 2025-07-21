@@ -1,6 +1,5 @@
 const winston = require('winston');
 
-// Define log levels
 const levels = {
   error: 0,
   warn: 1,
@@ -9,7 +8,6 @@ const levels = {
   debug: 4,
 };
 
-// Define colors for each level
 const colors = {
   error: 'red',
   warn: 'yellow',
@@ -18,10 +16,8 @@ const colors = {
   debug: 'white',
 };
 
-// Add colors to winston
 winston.addColors(colors);
 
-// Define format for logs
 const format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
@@ -30,9 +26,7 @@ const format = winston.format.combine(
   ),
 );
 
-// Define transports
 const transports = [
-  // Console transport for development
   new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),
@@ -40,7 +34,6 @@ const transports = [
     )
   }),
   
-  // File transport for errors
   new winston.transports.File({
     filename: 'logs/error.log',
     level: 'error',
@@ -50,7 +43,6 @@ const transports = [
     )
   }),
   
-  // File transport for all logs
   new winston.transports.File({
     filename: 'logs/combined.log',
     format: winston.format.combine(
@@ -60,7 +52,6 @@ const transports = [
   })
 ];
 
-// Create logger
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
   levels,
@@ -68,7 +59,6 @@ const logger = winston.createLogger({
   transports,
 });
 
-// Create logs directory if it doesn't exist
 const fs = require('fs');
 const path = require('path');
 const logsDir = path.join(__dirname, '../logs');

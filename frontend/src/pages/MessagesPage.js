@@ -28,12 +28,10 @@ const MessagesPage = () => {
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch neighbors for new conversations
   const fetchNeighbors = useCallback(async () => {
     try {
       const response = await fetch('/api/users/neighbors', {
@@ -51,7 +49,6 @@ const MessagesPage = () => {
     }
   }, []);
 
-  // Fetch conversations
   const fetchConversations = useCallback(async () => {
     try {
       const response = await fetch('/api/messages/conversations', {
@@ -69,7 +66,6 @@ const MessagesPage = () => {
     }
   }, []);
 
-  // Fetch messages for a conversation
   const fetchMessages = useCallback(async (conversationId) => {
     try {
       const response = await fetch(`/api/messages/conversations/${conversationId}`, {
@@ -88,7 +84,6 @@ const MessagesPage = () => {
     }
   }, []);
 
-  // Send message
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !activeConversation) return;
@@ -96,7 +91,6 @@ const MessagesPage = () => {
     const messageText = newMessage.trim();
     setNewMessage('');
 
-    // Add message optimistically
     const tempMessage = {
       _id: Date.now().toString(),
       content: messageText,
@@ -110,7 +104,6 @@ const MessagesPage = () => {
     scrollToBottom();
 
     try {
-      // Send to server
       const response = await fetch('/api/messages/send', {
         method: 'POST',
         headers: {
@@ -126,21 +119,17 @@ const MessagesPage = () => {
       if (response.ok) {
         const data = await response.json();
         
-        // Replace temp message with real one
         setMessages(prev => 
           prev.map(msg => 
             msg._id === tempMessage._id ? data.message : msg
           )
         );
 
-        // Send via socket for real-time delivery
         sendPrivateMessage(activeConversation.participant._id, messageText);
         
-        // Update conversations list
         fetchConversations();
       } else {
         toast.error('Failed to send message');
-        // Remove temp message on error
         setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
       }
     } catch (error) {
@@ -150,7 +139,6 @@ const MessagesPage = () => {
     }
   };
 
-  // Start new conversation
   const startConversation = async (neighborId) => {
     try {
       const response = await fetch('/api/messages/conversations', {
@@ -177,7 +165,6 @@ const MessagesPage = () => {
     }
   };
 
-  // Listen for real-time messages
   useEffect(() => {
     if (socket) {
       const handleNewMessage = (messageData) => {
@@ -187,7 +174,6 @@ const MessagesPage = () => {
           setMessages(prev => [...prev, messageData]);
           scrollToBottom();
         }
-        // Update conversations list
         fetchConversations();
       };
 

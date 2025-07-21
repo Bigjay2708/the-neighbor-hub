@@ -6,9 +6,6 @@ const logger = require('../utils/logger');
 
 const router = express.Router();
 
-// @route   GET /api/users/profile
-// @desc    Get current user's profile
-// @access  Private
 router.get('/profile', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
@@ -22,9 +19,6 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/users/profile
-// @desc    Update current user's profile
-// @access  Private
 router.put('/profile', [
   auth,
   body('firstName').optional().trim().notEmpty().withMessage('First name cannot be empty'),
@@ -63,9 +57,6 @@ router.put('/profile', [
   }
 });
 
-// @route   GET /api/users/neighbors
-// @desc    Get neighbors in the same neighborhood
-// @access  Private
 router.get('/neighbors', auth, async (req, res) => {
   try {
     const { page = 1, limit = 20, search, role } = req.query;
@@ -108,9 +99,6 @@ router.get('/neighbors', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/users/neighbors/:id
-// @desc    Get neighbor profile
-// @access  Private
 router.get('/neighbors/:id', auth, async (req, res) => {
   try {
     const neighbor = await User.findById(req.params.id)
@@ -121,7 +109,6 @@ router.get('/neighbors/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user is in the same neighborhood
     if (neighbor.neighborhoodId._id.toString() !== req.user.neighborhoodId.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -134,9 +121,6 @@ router.get('/neighbors/:id', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/users/upload-avatar
-// @desc    Upload user avatar
-// @access  Private
 router.post('/upload-avatar', auth, async (req, res) => {
   try {
     const { avatar } = req.body;
@@ -162,9 +146,6 @@ router.post('/upload-avatar', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/users/add-skill
-// @desc    Add skill to user profile
-// @access  Private
 router.post('/add-skill', [
   auth,
   body('skill').trim().notEmpty().withMessage('Skill is required')
@@ -197,9 +178,6 @@ router.post('/add-skill', [
   }
 });
 
-// @route   DELETE /api/users/remove-skill/:skill
-// @desc    Remove skill from user profile
-// @access  Private
 router.delete('/remove-skill/:skill', auth, async (req, res) => {
   try {
     const { skill } = req.params;
@@ -220,9 +198,6 @@ router.delete('/remove-skill/:skill', auth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/users/preferences
-// @desc    Update user preferences
-// @access  Private
 router.put('/preferences', auth, async (req, res) => {
   try {
     const { preferences } = req.body;
@@ -244,9 +219,6 @@ router.put('/preferences', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/users/activity-stats
-// @desc    Get user's activity statistics
-// @access  Private
 router.get('/activity-stats', auth, async (req, res) => {
   try {
     const ForumPost = require('../models/ForumPost');
@@ -276,11 +248,7 @@ router.get('/activity-stats', auth, async (req, res) => {
   }
 });
 
-// Admin routes
 
-// @route   GET /api/users/admin/all
-// @desc    Get all users (admin only)
-// @access  Private/Admin
 router.get('/admin/all', [auth, adminOnly], async (req, res) => {
   try {
     const { page = 1, limit = 20, search, role, neighborhood, verified } = req.query;
@@ -331,9 +299,6 @@ router.get('/admin/all', [auth, adminOnly], async (req, res) => {
   }
 });
 
-// @route   PUT /api/users/admin/:id/role
-// @desc    Update user role (admin only)
-// @access  Private/Admin
 router.put('/admin/:id/role', [
   auth,
   adminOnly,

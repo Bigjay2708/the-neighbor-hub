@@ -119,7 +119,6 @@ const safetyReportSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient querying
 safetyReportSchema.index({ neighborhoodId: 1, type: 1, createdAt: -1 });
 safetyReportSchema.index({ 'location.coordinates': '2dsphere' });
 safetyReportSchema.index({ severity: 1 });

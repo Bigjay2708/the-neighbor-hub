@@ -6,9 +6,6 @@ const logger = require('../utils/logger');
 
 const router = express.Router();
 
-// @route   POST /api/upload/single
-// @desc    Upload single image
-// @access  Private
 router.post('/single', [auth, uploadLimiter, uploadSingle], async (req, res) => {
   try {
     if (!req.file) {
@@ -36,9 +33,6 @@ router.post('/single', [auth, uploadLimiter, uploadSingle], async (req, res) => 
   }
 });
 
-// @route   POST /api/upload/multiple
-// @desc    Upload multiple images
-// @access  Private
 router.post('/multiple', [auth, uploadLimiter, uploadMultiple], async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
@@ -58,7 +52,6 @@ router.post('/multiple', [auth, uploadLimiter, uploadMultiple], async (req, res)
   }
 });
 
-// Error handling middleware
 router.use(handleUploadError);
 
 module.exports = router;

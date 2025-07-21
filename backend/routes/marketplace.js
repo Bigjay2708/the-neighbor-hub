@@ -6,9 +6,6 @@ const logger = require('../utils/logger');
 
 const router = express.Router();
 
-// @route   GET /api/marketplace/listings
-// @desc    Get marketplace listings for user's neighborhood
-// @access  Private
 router.get('/listings', auth, async (req, res) => {
   try {
     const { 
@@ -28,7 +25,6 @@ router.get('/listings', auth, async (req, res) => {
       status: status === 'all' ? { $ne: 'removed' } : status
     };
 
-    // Add filters
     if (category && category !== 'all') {
       query.category = category;
     }
@@ -51,7 +47,6 @@ router.get('/listings', auth, async (req, res) => {
       ];
     }
 
-    // Sort options
     let sortOptions = {};
     switch (sortBy) {
       case 'newest':
@@ -95,9 +90,6 @@ router.get('/listings', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/marketplace/listings/:id
-// @desc    Get single marketplace listing
-// @access  Private
 router.get('/listings/:id', auth, async (req, res) => {
   try {
     const listing = await MarketplaceListing.findById(req.params.id)
@@ -107,12 +99,10 @@ router.get('/listings/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-    // Check if user is in the same neighborhood
     if (listing.neighborhoodId.toString() !== req.user.neighborhoodId.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Increment view count if not the seller
     if (listing.sellerId._id.toString() !== req.user.id) {
       await MarketplaceListing.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
     }
@@ -125,9 +115,6 @@ router.get('/listings/:id', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/marketplace/listings
-// @desc    Create new marketplace listing
-// @access  Private
 router.post('/listings', [
   auth,
   verifiedOnly,
@@ -186,9 +173,6 @@ router.post('/listings', [
   }
 });
 
-// @route   PUT /api/marketplace/listings/:id
-// @desc    Update marketplace listing
-// @access  Private
 router.put('/listings/:id', [
   auth,
   body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
@@ -207,7 +191,6 @@ router.put('/listings/:id', [
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-    // Check if user is the seller
     if (listing.sellerId.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -238,9 +221,6 @@ router.put('/listings/:id', [
   }
 });
 
-// @route   POST /api/marketplace/listings/:id/favorite
-// @desc    Add/remove listing from favorites
-// @access  Private
 router.post('/listings/:id/favorite', auth, async (req, res) => {
   try {
     const listing = await MarketplaceListing.findById(req.params.id);
@@ -252,10 +232,8 @@ router.post('/listings/:id/favorite', auth, async (req, res) => {
     const existingFavorite = listing.favorites.find(fav => fav.userId.toString() === req.user.id);
 
     if (existingFavorite) {
-      // Remove from favorites
       listing.favorites = listing.favorites.filter(fav => fav.userId.toString() !== req.user.id);
     } else {
-      // Add to favorites
       listing.favorites.push({ userId: req.user.id });
     }
 
@@ -273,9 +251,6 @@ router.post('/listings/:id/favorite', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/marketplace/listings/:id/bump
-// @desc    Bump listing to top (once per day)
-// @access  Private
 router.post('/listings/:id/bump', auth, async (req, res) => {
   try {
     const listing = await MarketplaceListing.findById(req.params.id);
@@ -284,12 +259,10 @@ router.post('/listings/:id/bump', auth, async (req, res) => {
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-    // Check if user is the seller
     if (listing.sellerId.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Check if already bumped today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -308,9 +281,6 @@ router.post('/listings/:id/bump', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/marketplace/my-listings
-// @desc    Get current user's listings
-// @access  Private
 router.get('/my-listings', auth, async (req, res) => {
   try {
     const { status = 'all' } = req.query;
@@ -332,9 +302,6 @@ router.get('/my-listings', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/marketplace/favorites
-// @desc    Get user's favorite listings
-// @access  Private
 router.get('/favorites', auth, async (req, res) => {
   try {
     const listings = await MarketplaceListing.find({
@@ -352,9 +319,6 @@ router.get('/favorites', auth, async (req, res) => {
   }
 });
 
-// @route   DELETE /api/marketplace/listings/:id
-// @desc    Delete marketplace listing
-// @access  Private
 router.delete('/listings/:id', auth, async (req, res) => {
   try {
     const listing = await MarketplaceListing.findById(req.params.id);
@@ -363,7 +327,6 @@ router.delete('/listings/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-    // Check if user is the seller or admin
     if (listing.sellerId.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied' });
     }

@@ -54,7 +54,6 @@ const commentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient querying
 commentSchema.index({ postId: 1, createdAt: 1 });
 commentSchema.index({ parentCommentId: 1 });
 

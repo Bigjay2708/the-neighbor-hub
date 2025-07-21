@@ -8,12 +8,10 @@ const { messageLimiter } = require('../utils/rateLimiting');
 const { sanitizeUserInput } = require('../utils/security');
 const logger = require('../utils/logger');
 
-// Get all conversations for a user
 router.get('/conversations', auth, async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user.id);
 
-    // Get all messages where user is sender or recipient
     const messages = await Message.aggregate([
       {
         $match: {
@@ -51,7 +49,6 @@ router.get('/conversations', auth, async (req, res) => {
       }
     ]);
 
-    // Get participant details for each conversation
     const conversations = await Promise.all(
       messages.map(async (conversation) => {
         const lastMessage = conversation.lastMessage;
@@ -81,13 +78,11 @@ router.get('/conversations', auth, async (req, res) => {
   }
 });
 
-// Get messages for a specific conversation
 router.get('/conversations/:conversationId', auth, async (req, res) => {
   try {
     const { conversationId } = req.params;
     const userId = req.user.id;
 
-    // Verify user is part of this conversation
     const sampleMessage = await Message.findOne({ conversationId });
     if (!sampleMessage || 
         (sampleMessage.senderId.toString() !== userId && 
@@ -95,13 +90,11 @@ router.get('/conversations/:conversationId', auth, async (req, res) => {
       return res.status(403).json({ message: 'Access denied to this conversation' });
     }
 
-    // Get all messages in the conversation
     const messages = await Message.find({ conversationId })
       .populate('senderId', 'firstName lastName')
       .sort({ createdAt: 1 })
       .limit(100); // Limit to last 100 messages
 
-    // Mark messages as read where current user is recipient
     await Message.updateMany(
       { 
         conversationId,
@@ -114,7 +107,6 @@ router.get('/conversations/:conversationId', auth, async (req, res) => {
       }
     );
 
-    // Format messages for frontend
     const formattedMessages = messages.map(msg => ({
       _id: msg._id,
       content: msg.content,
@@ -131,10 +123,8 @@ router.get('/conversations/:conversationId', auth, async (req, res) => {
   }
 });
 
-// Send a new message
 router.post('/send', [auth, messageLimiter], async (req, res) => {
   try {
-    // Sanitize input
     const sanitizedData = sanitizeUserInput(req.body, {
       content: { type: 'text' }
     });
@@ -146,13 +136,11 @@ router.post('/send', [auth, messageLimiter], async (req, res) => {
       return res.status(400).json({ message: 'Recipient and content are required' });
     }
 
-    // Verify recipient exists
     const recipient = await User.findById(recipientId);
     if (!recipient) {
       return res.status(404).json({ message: 'Recipient not found' });
     }
 
-    // Create the message
     const message = new Message({
       senderId,
       recipientId,
@@ -161,10 +149,8 @@ router.post('/send', [auth, messageLimiter], async (req, res) => {
 
     await message.save();
 
-    // Populate sender info for response
     await message.populate('senderId', 'firstName lastName');
 
-    // Format message for response
     const formattedMessage = {
       _id: message._id,
       content: message.content,
@@ -184,7 +170,6 @@ router.post('/send', [auth, messageLimiter], async (req, res) => {
   }
 });
 
-// Mark conversation as read
 router.patch('/conversations/:conversationId/read', auth, async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -209,7 +194,6 @@ router.patch('/conversations/:conversationId/read', auth, async (req, res) => {
   }
 });
 
-// Get unread message count
 router.get('/unread-count', auth, async (req, res) => {
   try {
     const userId = req.user.id;

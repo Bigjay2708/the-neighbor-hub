@@ -21,11 +21,8 @@ export const SocketProvider = ({ children }) => {
 
       newSocket.on('connect', () => {
         console.log('Connected to server');
-        // Authenticate user
         newSocket.emit('authenticate', user.id);
-        // Join neighborhood room
         newSocket.emit('joinNeighborhood', user.neighborhoodId);
-        // Get online users
         newSocket.emit('getOnlineUsers');
       });
 
@@ -33,7 +30,6 @@ export const SocketProvider = ({ children }) => {
         console.log('Disconnected from server');
       });
 
-      // Listen for new forum messages
       newSocket.on('newForumMessage', (data) => {
         if (data.authorId !== user.id) {
           toast(`New post: ${data.title}`, {
@@ -43,7 +39,6 @@ export const SocketProvider = ({ children }) => {
         }
       });
 
-      // Listen for marketplace updates
       newSocket.on('marketplaceUpdate', (data) => {
         if (data.sellerId !== user.id) {
           toast(`Marketplace: ${data.title}`, {
@@ -53,7 +48,6 @@ export const SocketProvider = ({ children }) => {
         }
       });
 
-      // Listen for safety alerts
       newSocket.on('safetyAlert', (data) => {
         if (data.reporterId !== user.id) {
           toast(`Safety Alert: ${data.title}`, {
@@ -67,7 +61,6 @@ export const SocketProvider = ({ children }) => {
         }
       });
 
-      // Listen for private messages
       newSocket.on('privateMessage', (data) => {
         toast(`Message from ${data.senderName}: ${data.content}`, {
           icon: '✉️',
@@ -75,17 +68,14 @@ export const SocketProvider = ({ children }) => {
         });
       });
 
-      // Listen for online users
       newSocket.on('onlineUsers', (users) => {
         setOnlineUsers(users);
       });
 
-      // Listen for user coming online
       newSocket.on('userOnline', (userId) => {
         setOnlineUsers(prev => [...prev.filter(id => id !== userId), userId]);
       });
 
-      // Listen for user going offline
       newSocket.on('userOffline', (userId) => {
         setOnlineUsers(prev => prev.filter(id => id !== userId));
       });
@@ -102,7 +92,6 @@ export const SocketProvider = ({ children }) => {
         setOnlineUsers([]);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const emitForumMessage = (data) => {

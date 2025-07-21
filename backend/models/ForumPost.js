@@ -86,12 +86,10 @@ const forumPostSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient querying
 forumPostSchema.index({ neighborhoodId: 1, category: 1, createdAt: -1 });
 forumPostSchema.index({ tags: 1 });
 forumPostSchema.index({ lastActivity: -1 });
 
-// Update lastActivity when post is interacted with
 forumPostSchema.methods.updateActivity = function() {
   this.lastActivity = new Date();
   return this.save();

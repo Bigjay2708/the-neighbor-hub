@@ -6,9 +6,6 @@ const logger = require('../utils/logger');
 
 const router = express.Router();
 
-// @route   GET /api/safety/reports
-// @desc    Get safety reports for user's neighborhood
-// @access  Private
 router.get('/reports', auth, async (req, res) => {
   try {
     const { 
@@ -27,7 +24,6 @@ router.get('/reports', auth, async (req, res) => {
       neighborhoodId: req.user.neighborhoodId
     };
 
-    // Add filters
     if (type && type !== 'all') {
       query.type = type;
     }
@@ -40,7 +36,6 @@ router.get('/reports', auth, async (req, res) => {
       query.status = status;
     }
 
-    // Location-based filtering
     if (lat && lng) {
       const radiusInMeters = radius * 1609.34; // Convert miles to meters
       query['location.coordinates'] = {
@@ -54,7 +49,6 @@ router.get('/reports', auth, async (req, res) => {
       };
     }
 
-    // Sort options
     let sortOptions = {};
     switch (sortBy) {
       case 'newest':
@@ -96,9 +90,6 @@ router.get('/reports', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/safety/reports/:id
-// @desc    Get single safety report
-// @access  Private
 router.get('/reports/:id', auth, async (req, res) => {
   try {
     const report = await SafetyReport.findById(req.params.id)
@@ -110,7 +101,6 @@ router.get('/reports/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Report not found' });
     }
 
-    // Check if user is in the same neighborhood
     if (report.neighborhoodId.toString() !== req.user.neighborhoodId.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -123,9 +113,6 @@ router.get('/reports/:id', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/safety/reports
-// @desc    Create new safety report
-// @access  Private
 router.post('/reports', [
   auth,
   verifiedOnly,
@@ -192,9 +179,6 @@ router.post('/reports', [
   }
 });
 
-// @route   PUT /api/safety/reports/:id
-// @desc    Update safety report
-// @access  Private
 router.put('/reports/:id', [
   auth,
   body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
@@ -212,7 +196,6 @@ router.put('/reports/:id', [
       return res.status(404).json({ message: 'Report not found' });
     }
 
-    // Check if user is the reporter or moderator/admin
     if (report.reporterId.toString() !== req.user.id && !['admin', 'moderator'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -243,9 +226,6 @@ router.put('/reports/:id', [
   }
 });
 
-// @route   POST /api/safety/reports/:id/acknowledge
-// @desc    Acknowledge a safety report
-// @access  Private
 router.post('/reports/:id/acknowledge', auth, async (req, res) => {
   try {
     const report = await SafetyReport.findById(req.params.id);
@@ -257,10 +237,8 @@ router.post('/reports/:id/acknowledge', auth, async (req, res) => {
     const existingAck = report.acknowledgedBy.find(ack => ack.userId.toString() === req.user.id);
 
     if (existingAck) {
-      // Remove acknowledgment
       report.acknowledgedBy = report.acknowledgedBy.filter(ack => ack.userId.toString() !== req.user.id);
     } else {
-      // Add acknowledgment
       report.acknowledgedBy.push({ userId: req.user.id });
     }
 
@@ -278,9 +256,6 @@ router.post('/reports/:id/acknowledge', auth, async (req, res) => {
   }
 });
 
-// @route   POST /api/safety/reports/:id/comments
-// @desc    Add comment to safety report
-// @access  Private
 router.post('/reports/:id/comments', [
   auth,
   body('content').trim().notEmpty().withMessage('Comment content is required')
@@ -323,9 +298,6 @@ router.post('/reports/:id/comments', [
   }
 });
 
-// @route   POST /api/safety/reports/:id/verify
-// @desc    Verify a safety report (moderators/admins only)
-// @access  Private
 router.post('/reports/:id/verify', [auth, moderatorOrAdmin], async (req, res) => {
   try {
     const report = await SafetyReport.findById(req.params.id);
@@ -354,9 +326,6 @@ router.post('/reports/:id/verify', [auth, moderatorOrAdmin], async (req, res) =>
   }
 });
 
-// @route   GET /api/safety/stats
-// @desc    Get safety statistics for neighborhood
-// @access  Private
 router.get('/stats', auth, async (req, res) => {
   try {
     const { timeframe = '30' } = req.query; // days
@@ -387,7 +356,6 @@ router.get('/stats', auth, async (req, res) => {
       }
     ]);
 
-    // Count reports by type
     const typeCount = {};
     const severityCount = {};
     const statusCount = {};
@@ -420,9 +388,6 @@ router.get('/stats', auth, async (req, res) => {
   }
 });
 
-// @route   DELETE /api/safety/reports/:id
-// @desc    Delete safety report
-// @access  Private
 router.delete('/reports/:id', auth, async (req, res) => {
   try {
     const report = await SafetyReport.findById(req.params.id);
@@ -431,7 +396,6 @@ router.delete('/reports/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Report not found' });
     }
 
-    // Check if user is the reporter or admin
     if (report.reporterId.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied' });
     }

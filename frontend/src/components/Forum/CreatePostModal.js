@@ -81,7 +81,6 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
       
       await onSubmit(formData);
       
-      // Reset form
       reset();
       setSelectedImages([]);
       setTags([]);

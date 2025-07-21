@@ -38,7 +38,6 @@ const ForumPage = () => {
     { value: 'mostViewed', label: 'Most Viewed' }
   ];
 
-  // Fetch posts
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
@@ -71,25 +70,21 @@ const ForumPage = () => {
     }
   }, [currentPage, sortBy, selectedCategory, searchTerm]);
 
-  // Create new post
   const handleCreatePost = async (formData) => {
     try {
       setIsSubmitting(true);
       
-      // Create FormData for file upload
       const postFormData = new FormData();
       postFormData.append('title', formData.title);
       postFormData.append('content', formData.content);
       postFormData.append('category', formData.category);
       
-      // Add tags
       if (formData.tags && formData.tags.length > 0) {
         formData.tags.forEach(tag => {
           postFormData.append('tags', tag);
         });
       }
       
-      // Add images
       if (formData.images && formData.images.length > 0) {
         formData.images.forEach(imageData => {
           postFormData.append('images', imageData.file);
@@ -100,7 +95,6 @@ const ForumPage = () => {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-          // Don't set Content-Type header - let browser set it with boundary for FormData
         },
         body: postFormData
       });
@@ -109,14 +103,12 @@ const ForumPage = () => {
         const data = await response.json();
         toast.success('Post created successfully!');
         
-        // Emit real-time update
         emitForumMessage({
           type: 'newPost',
           title: data.post.title,
           postId: data.post._id
         });
         
-        // Refresh posts
         await fetchPosts();
       } else {
         const errorData = await response.json();
@@ -130,7 +122,6 @@ const ForumPage = () => {
     }
   };
 
-  // Like/unlike post
   const handleLikePost = async (postId) => {
     try {
       const response = await fetch(`/api/forum/posts/${postId}/like`, {
@@ -150,7 +141,6 @@ const ForumPage = () => {
     }
   };
 
-  // Delete post
   const handleDeletePost = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) {
       return;
@@ -176,7 +166,6 @@ const ForumPage = () => {
     }
   };
 
-  // Search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
@@ -186,12 +175,10 @@ const ForumPage = () => {
     return () => clearTimeout(timer);
   }, [searchTerm, selectedCategory, sortBy, fetchPosts]);
 
-  // Fetch posts on page change
   useEffect(() => {
     fetchPosts();
   }, [currentPage, fetchPosts]);
 
-  // Initial load
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);

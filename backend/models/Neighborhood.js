@@ -50,7 +50,6 @@ const neighborhoodSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Geospatial index for location queries
 neighborhoodSchema.index({ boundaries: '2dsphere' });
 
 module.exports = mongoose.model('Neighborhood', neighborhoodSchema);

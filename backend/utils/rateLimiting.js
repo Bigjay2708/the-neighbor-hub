@@ -1,6 +1,5 @@
 const rateLimit = require('express-rate-limit');
 
-// General API rate limiting
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -11,7 +10,6 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Strict rate limiting for authentication endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // limit each IP to 5 requests per windowMs
@@ -23,7 +21,6 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiting for post creation
 const postCreationLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 3, // limit each IP to 3 posts per 5 minutes
@@ -34,7 +31,6 @@ const postCreationLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiting for message sending
 const messageLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 10, // limit each IP to 10 messages per minute
@@ -45,7 +41,6 @@ const messageLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiting for file uploads
 const uploadLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 10, // limit each IP to 10 uploads per 5 minutes
