@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Search, Filter, MapPin } from 'lucide-react';
+import { Users, Search, Filter } from 'lucide-react';
 
 const NeighborsPage = () => {
   return (

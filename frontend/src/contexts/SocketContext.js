@@ -92,7 +92,7 @@ export const SocketProvider = ({ children }) => {
         setOnlineUsers([]);
       }
     }
-  }, [user]);
+  }, [user, socket]);
 
   const emitForumMessage = (data) => {
     if (socket) {

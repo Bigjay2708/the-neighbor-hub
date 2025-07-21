@@ -5,7 +5,8 @@
       "src": "backend/server.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["backend/**"]
+        "includeFiles": ["backend/**"],
+        "maxLambdaSize": "50mb"
       }
     },
     {
@@ -32,10 +33,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "backend/server.js": {
-      "maxDuration": 30
-    }
   }
 }
