@@ -1,6 +1,7 @@
 # NeighborHub - Vercel Deployment Guide
 
 ## Prerequisites
+
 - MongoDB Atlas database (already configured)
 - Cloudinary account (already configured)
 - Vercel account
@@ -8,6 +9,7 @@
 ## Environment Variables Required
 
 ### Backend (.env)
+
 ```
 NODE_ENV=production
 MONGODB_URI=your_mongodb_connection_string
@@ -18,6 +20,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 ### Frontend (handled automatically via .env.production)
+
 - REACT_APP_API_URL=/api
 - REACT_APP_SOCKET_URL="" (uses same domain in production)
 - REACT_APP_CLOUDINARY_CLOUD_NAME=drjws4gkf
@@ -26,10 +29,12 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ## Deployment Steps
 
 1. **Connect Repository to Vercel**
+
    - Import project from GitHub in Vercel dashboard
    - Select "neighbor-hub" repository
 
 2. **Configure Environment Variables**
+
    - In Vercel dashboard, go to Settings > Environment Variables
    - Add all backend environment variables listed above
 
@@ -39,6 +44,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
    - Frontend will be served at the root domain
 
 ## Project Structure
+
 ```
 neighbor-hub/
 ├── frontend/           # React app (builds to static files)
@@ -48,6 +54,7 @@ neighbor-hub/
 ```
 
 ## Features Deployed
+
 - ✅ User authentication and registration
 - ✅ Real-time messaging with Socket.io
 - ✅ Forum posts and comments
@@ -57,6 +64,7 @@ neighbor-hub/
 - ✅ Security features (rate limiting, input sanitization)
 
 ## Post-Deployment
+
 1. Test all API endpoints
 2. Verify Socket.io real-time features
 3. Test image uploads
