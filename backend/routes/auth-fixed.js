@@ -58,15 +58,8 @@ router.post('/register', [
   body('zipCode').notEmpty().withMessage('Zip code is required')
 ], async (req, res) => {
   try {
-    console.log('Registration attempt started:', { 
-      email: req.body.email, 
-      hasPassword: !!req.body.password,
-      mongoState: require('mongoose').connection.readyState
-    });
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -77,26 +70,17 @@ router.post('/register', [
       zipCode: { type: 'text' }
     });
 
-    const { firstName, lastName, email, password, zipCode } = {
-      ...sanitizedData,
-      password: req.body.password
-    };
-
-    console.log('Sanitized data:', { firstName, lastName, email, zipCode, hasPassword: !!password });
+    const { firstName, lastName, email, password, zipCode } = sanitizedData;
 
     // Check if user already exists
-    console.log('Checking for existing user...');
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log('User already exists');
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    console.log('Finding/creating neighborhood...');
     // Find or create neighborhood
     let neighborhood = await Neighborhood.findOne({ zipCode });
     if (!neighborhood) {
-      console.log('Creating new neighborhood for:', zipCode);
       neighborhood = new Neighborhood({
         zipCode,
         name: `${zipCode} Community`,
@@ -111,12 +95,10 @@ router.post('/register', [
       await neighborhood.save();
     }
 
-    console.log('Hashing password...');
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    console.log('Creating user...');
     // Create user
     const user = new User({
       firstName,
@@ -130,7 +112,6 @@ router.post('/register', [
     });
 
     await user.save();
-    console.log('User created successfully');
 
     // Update neighborhood stats
     await Neighborhood.findByIdAndUpdate(neighborhood._id, {
@@ -139,7 +120,6 @@ router.post('/register', [
 
     const token = generateToken(user._id);
 
-    console.log('Registration completed successfully');
     res.status(201).json({
       message: 'User registered successfully',
       token,
@@ -155,20 +135,12 @@ router.post('/register', [
     });
 
   } catch (error) {
-    console.error('Registration error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
     logger.error('Registration error:', {
       error: error.message,
       stack: error.stack,
       email: req.body.email
     });
-    res.status(500).json({ 
-      message: 'Server error during registration',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
+    res.status(500).json({ message: 'Server error during registration' });
   }
 });
 
