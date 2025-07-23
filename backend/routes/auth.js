@@ -1,6 +1,13 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');    const sanitizedData = sanitizeUserInput(req.body, {
+      firstName: { type: 'text' },
+      lastName: { type: 'text' },
+      email: { type: 'email' },
+      zipCode: { type: 'text' }
+    });
+
+    const { firstName, lastName, email, zipCode } = sanitizedData;
+    const { password } = req.body; // Get password separately to avoid sanitization = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Neighborhood = require('../models/Neighborhood');
